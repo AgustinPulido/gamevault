@@ -1,0 +1,50 @@
+// Shared by login and register (both components point their styleUrl here).
+
+.auth-page {
+  min-height: calc(100vh - var(--header-h));
+  display: grid;
+  place-items: center;
+  padding: 40px 16px;
+  // Subtle colored glows in the background
+  background:
+    radial-gradient(circle at 20% 20%, color-mix(in srgb, var(--primary) 18%, transparent), transparent 40%),
+    radial-gradient(circle at 80% 80%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 40%);
+}
+
+.panel {
+  width: 100%;
+  max-width: 420px;
+  padding: 36px 32px;
+  box-shadow: var(--shadow);
+  h1 { font-size: 2rem; margin: 12px 0 4px; }
+  > p { margin: 0 0 24px; }
+}
+
+.brand .icon {
+  font-size: 3rem;
+  background: var(--gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.password {
+  position: relative;
+  .input { padding-right: 46px; }
+  .btn { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); }
+}
+
+.demo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+  font-size: 0.85rem;
+}
+
+.switch {
+  margin: 20px 0 0;
+  text-align: center;
+  font-size: 0.9rem;
+}

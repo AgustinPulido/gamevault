@@ -1,0 +1,119 @@
+<!-- ============================ HERO CAROUSEL ============================ -->
+@if (current(); as game) {
+  <section class="hero">
+    <!-- Big blurred background image of the current featured game -->
+    <div class="hero-bg" [style.background-image]="'url(' + game.headerImage + ')'"></div>
+
+    <div class="container hero-inner">
+      <div class="hero-text">
+        <span class="badge info"><span class="icon">local_fire_department</span> Featured</span>
+        <h1>{{ game.title }}</h1>
+        <p class="lead">{{ game.shortDescription }}</p>
+        <div class="tags">
+          @for (genre of game.genres; track genre.id) {
+            <span class="chip">{{ genre.name }}</span>
+          }
+        </div>
+        <div class="hero-buy">
+          <app-price-tag class="large" [price]="game.price" [finalPrice]="game.finalPrice"
+                         [discountPercent]="game.discountPercent" />
+          <a class="btn primary lg" [routerLink]="['/games', game.slug]">
+            <span class="icon">play_arrow</span> View game
+          </a>
+        </div>
+      </div>
+
+      <a class="hero-art" [routerLink]="['/games', game.slug]">
+        <img [src]="game.headerImage" [alt]="game.title" />
+      </a>
+    </div>
+
+    <!-- Carousel controls -->
+    <div class="container dots">
+      <button class="btn ghost icon-only" type="button" (click)="prev()" aria-label="Previous">
+        <span class="icon">chevron_left</span>
+      </button>
+      @for (g of featured(); track g.id) {
+        <button type="button" class="dot" [class.active]="$index === slide()" (click)="slide.set($index)"
+                [attr.aria-label]="'Show ' + g.title"></button>
+      }
+      <button class="btn ghost icon-only" type="button" (click)="next()" aria-label="Next">
+        <span class="icon">chevron_right</span>
+      </button>
+    </div>
+  </section>
+} @else if (sections.isLoading()) {
+  <div class="container"><div class="skeleton hero-skeleton"></div></div>
+}
+
+<div class="container">
+  <!-- Error state: shown if the backend is down -->
+  @if (sections.error()) {
+    <div class="empty-state">
+      <span class="icon">cloud_off</span>
+      <h2>Couldn't load the store</h2>
+      <p>Make sure the backend is running (<code>cd backend &amp;&amp; npm run dev</code>).</p>
+      <button class="btn primary" (click)="sections.reload()">Try again</button>
+    </div>
+  }
+
+  <!-- ============================ GENRES ============================ -->
+  <div class="section-head"><h2>Browse by genre</h2></div>
+  <div class="genres">
+    @for (genre of genres.value(); track genre.id) {
+      <a class="genre" [routerLink]="['/games']" [queryParams]="{ genre: genre.slug }">
+        <strong>{{ genre.name }}</strong>
+        <span class="muted">{{ genre.gameCount }} games</span>
+      </a>
+    }
+  </div>
+
+  <!-- ============================ ROWS ============================ -->
+  @if (sections.value(); as s) {
+    <div class="section-head">
+      <h2><span class="icon">sell</span> Special offers</h2>
+      <a routerLink="/games" [queryParams]="{ onSale: true, sort: 'discount' }">See all deals →</a>
+    </div>
+    <div class="game-grid">
+      @for (game of s.onSale; track game.id) {
+        <app-game-card [game]="game" />
+      }
+    </div>
+
+    <div class="section-head">
+      <h2><span class="icon">new_releases</span> New releases</h2>
+      <a routerLink="/games" [queryParams]="{ sort: 'newest' }">See more →</a>
+    </div>
+    <div class="game-grid">
+      @for (game of s.newReleases; track game.id) {
+        <app-game-card [game]="game" />
+      }
+    </div>
+
+    <div class="section-head">
+      <h2><span class="icon">military_tech</span> Critically acclaimed</h2>
+      <a routerLink="/games" [queryParams]="{ sort: 'metacritic' }">See more →</a>
+    </div>
+    <div class="game-grid">
+      @for (game of s.topRated; track game.id) {
+        <app-game-card [game]="game" />
+      }
+    </div>
+
+    @if (s.freeToPlay.length) {
+      <div class="section-head"><h2><span class="icon">redeem</span> Free to play</h2></div>
+      <div class="game-grid">
+        @for (game of s.freeToPlay; track game.id) {
+          <app-game-card [game]="game" />
+        }
+      </div>
+    }
+  } @else if (sections.isLoading()) {
+    <!-- Skeleton placeholders while loading -->
+    <div class="game-grid" style="margin-top: 32px">
+      @for (i of [1, 2, 3, 4, 5, 6]; track i) {
+        <div class="skeleton" style="aspect-ratio: 2 / 3.6"></div>
+      }
+    </div>
+  }
+</div>

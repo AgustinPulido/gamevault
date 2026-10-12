@@ -1,0 +1,98 @@
+<div class="container page">
+  <h1>Your cart</h1>
+
+  @if (cart.cart(); as c) {
+    @if (c.items.length === 0) {
+      <div class="empty-state">
+        <span class="icon">shopping_cart</span>
+        <h2>Your cart is empty</h2>
+        <p>Find something fun to play!</p>
+        <a routerLink="/games" class="btn primary">Browse games</a>
+      </div>
+    } @else {
+      <div class="layout">
+        <!-- ===================== LINES ===================== -->
+        <section class="lines">
+          @for (item of c.items; track item.id) {
+            <article class="line card" [class.busy]="busyItem() === item.id">
+              <a [routerLink]="['/games', item.game.slug]" class="thumb">
+                <img [src]="item.game.headerImage" [alt]="item.game.title" />
+              </a>
+              <div class="info">
+                <a [routerLink]="['/games', item.game.slug]" class="title">{{ item.game.title }}</a>
+                <span class="badge">{{ item.platform.name }}</span>
+                <div class="unit muted">
+                  @if (item.originalUnitPrice !== item.unitPrice) {
+                    <s>{{ item.originalUnitPrice | cents }}</s>
+                  }
+                  {{ item.unitPrice | cents }} each
+                </div>
+                @if (item.game.stock < item.quantity) {
+                  <span class="badge danger">Only {{ item.game.stock }} in stock</span>
+                }
+              </div>
+              <div class="qty">
+                <button class="btn ghost icon-only" type="button" (click)="setQuantity(item, item.quantity - 1)"
+                        [disabled]="item.quantity <= 1 || busyItem() === item.id" aria-label="Less">
+                  <span class="icon">remove</span>
+                </button>
+                <span>{{ item.quantity }}</span>
+                <button class="btn ghost icon-only" type="button" (click)="setQuantity(item, item.quantity + 1)"
+                        [disabled]="item.quantity >= 10 || busyItem() === item.id" aria-label="More">
+                  <span class="icon">add</span>
+                </button>
+              </div>
+              <div class="total">{{ item.lineTotal | cents }}</div>
+              <button class="btn ghost icon-only remove" type="button" (click)="remove(item)" aria-label="Remove">
+                <span class="icon">delete</span>
+              </button>
+            </article>
+          }
+          <a routerLink="/games" class="muted continue">← Continue shopping</a>
+        </section>
+
+        <!-- ===================== SUMMARY ===================== -->
+        <aside class="summary card">
+          <h3>Order summary</h3>
+
+          <!-- Coupon -->
+          @if (c.totals.coupon; as coupon) {
+            <div class="coupon-applied">
+              <span class="icon">sell</span>
+              <div>
+                <strong>{{ coupon.code }}</strong>
+                <div class="muted small">{{ coupon.description }}</div>
+              </div>
+              <button class="btn ghost sm" type="button" (click)="removeCoupon()">Remove</button>
+            </div>
+          } @else {
+            <form class="coupon" (submit)="$event.preventDefault(); applyCoupon(code.value)">
+              <input #code class="input" placeholder="Coupon code" aria-label="Coupon code" />
+              <button class="btn outline" type="submit">Apply</button>
+            </form>
+            <p class="hint muted">Try <code>WELCOME10</code>, <code>GAMER20</code> or <code>MEGA50</code></p>
+          }
+
+          <dl class="totals">
+            <dt>Subtotal ({{ c.totals.itemCount }} items)</dt><dd>{{ c.totals.subtotal | cents }}</dd>
+            @if (c.totals.savings > 0) {
+              <dt class="save">Game discounts</dt><dd class="save">-{{ c.totals.savings | cents }}</dd>
+            }
+            @if (c.totals.discount > 0) {
+              <dt class="save">Coupon ({{ c.totals.coupon?.percentOff }}%)</dt><dd class="save">-{{ c.totals.discount | cents }}</dd>
+            }
+            <dt>Tax ({{ c.totals.taxRate * 100 }}%)</dt><dd>{{ c.totals.tax | cents }}</dd>
+            <dt class="grand">Total</dt><dd class="grand">{{ c.totals.total | cents }}</dd>
+          </dl>
+
+          <a routerLink="/checkout" class="btn primary lg block">
+            <span class="icon">lock</span> Proceed to checkout
+          </a>
+          <p class="muted small center">Digital keys are delivered instantly after payment.</p>
+        </aside>
+      </div>
+    }
+  } @else {
+    <div class="skeleton" style="height: 300px"></div>
+  }
+</div>

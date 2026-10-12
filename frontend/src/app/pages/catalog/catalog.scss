@@ -1,0 +1,85 @@
+.top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+  h1 { margin: 0; }
+  p { margin: 4px 0 0; }
+}
+
+.sort {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9rem;
+  select { width: auto; }
+}
+
+// Sidebar + results, side by side
+.layout {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 28px;
+  align-items: start;
+}
+
+.filters {
+  position: sticky;            // follows the scroll
+  top: calc(var(--header-h) + 16px);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+
+  h3 { margin: 0; }
+  h4 {
+    margin: 0 0 10px;
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+  }
+}
+
+.filter-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  .chip { padding: 4px 10px; font-size: 0.8rem; }
+}
+
+.radio {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  font-size: 0.9rem;
+  cursor: pointer;
+  input { accent-color: var(--primary); width: 16px; height: 16px; }
+}
+
+// Fade results slightly while a new page loads
+.results { transition: opacity 0.2s; }
+.results.loading { opacity: 0.55; }
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 36px;
+  .btn { min-width: 38px; }
+}
+
+@media (max-width: 860px) {
+  .layout { grid-template-columns: 1fr; }
+  .filters { position: static; }
+}

@@ -1,0 +1,150 @@
+@if (game.value(); as g) {
+  <!-- Page background: the game's artwork, faded out at the bottom -->
+  <div class="backdrop" [style.background-image]="'url(' + g.backgroundImage + ')'"></div>
+
+  <div class="container page">
+    <!-- Breadcrumb navigation -->
+    <nav class="crumbs muted">
+      <a routerLink="/games">All games</a>
+      @if (g.genres[0]; as mainGenre) {
+        <span>/</span>
+        <a routerLink="/games" [queryParams]="{ genre: mainGenre.slug }">{{ mainGenre.name }}</a>
+      }
+      <span>/</span>
+      <span>{{ g.title }}</span>
+    </nav>
+
+    <h1>{{ g.title }}</h1>
+    <div class="subtitle">
+      <app-star-rating [value]="g.rating" [showValue]="true" />
+      <a href="#reviews" class="muted">{{ g.reviewCount }} reviews</a>
+      @if (g.metacritic) {
+        <span class="metacritic" [class.high]="g.metacritic >= 85">{{ g.metacritic }}</span>
+        <span class="muted">Metacritic</span>
+      }
+    </div>
+
+    <div class="top">
+      <!-- ========================= MEDIA GALLERY ========================= -->
+      <section class="gallery">
+        <div class="viewer">
+          @if (selected(); as m) {
+            @if (m.kind === 'trailer') {
+              <app-trailer-player [src]="m.url" [poster]="m.thumbnail" [title]="m.title" />
+            } @else {
+              <img [src]="m.url" [alt]="m.title" />
+            }
+          }
+        </div>
+        <div class="thumbs">
+          @for (m of media(); track m.url) {
+            <button type="button" class="thumb" [class.active]="$index === selectedIndex()"
+                    (click)="selectedIndex.set($index)" [attr.aria-label]="m.title">
+              <img [src]="m.thumbnail" alt="" loading="lazy" />
+              @if (m.kind === 'trailer') {
+                <span class="icon filled play">play_circle</span>
+              }
+            </button>
+          }
+        </div>
+      </section>
+
+      <!-- ========================= PURCHASE BOX ========================= -->
+      <aside class="buy card">
+        <img class="header-img" [src]="g.headerImage" [alt]="g.title" />
+        <p class="short">{{ g.shortDescription }}</p>
+
+        <app-price-tag class="large" [price]="g.price" [finalPrice]="g.finalPrice" [discountPercent]="g.discountPercent" />
+
+        <div class="label">Platform</div>
+        <div class="platforms">
+          @for (p of g.platforms; track p.id) {
+            <button type="button" class="chip" [class.active]="platformId() === p.id" (click)="platformId.set(p.id)">
+              {{ p.name }}
+            </button>
+          }
+        </div>
+
+        @if (g.stock > 0) {
+          <div class="qty-row">
+            <div class="qty">
+              <button type="button" class="btn ghost icon-only" (click)="changeQuantity(-1)" aria-label="Less">
+                <span class="icon">remove</span>
+              </button>
+              <span>{{ quantity() }}</span>
+              <button type="button" class="btn ghost icon-only" (click)="changeQuantity(1)" aria-label="More">
+                <span class="icon">add</span>
+              </button>
+            </div>
+            <span class="stock" [class.low]="g.stock < 5">
+              <span class="icon">inventory_2</span>
+              {{ g.stock < 5 ? 'Only ' + g.stock + ' keys left!' : 'In stock' }}
+            </span>
+          </div>
+
+          <button class="btn primary lg block" type="button" [disabled]="adding()" (click)="addToCart()">
+            <span class="icon">add_shopping_cart</span> {{ adding() ? 'Adding...' : 'Add to cart' }}
+          </button>
+          <button class="btn outline block" type="button" [disabled]="adding()" (click)="addToCart(true)">Buy now</button>
+        } @else {
+          <div class="sold-out"><span class="icon">block</span> Sold out — check back soon</div>
+        }
+
+        <button class="btn ghost block" type="button" (click)="wishlist.toggle(g)">
+          <span class="icon" [class.filled]="inWishlist()" [style.color]="inWishlist() ? '#f43f5e' : null">favorite</span>
+          {{ inWishlist() ? 'In your wishlist' : 'Add to wishlist' }}
+        </button>
+
+        <dl class="facts">
+          <dt>Developer</dt><dd>{{ g.developer }}</dd>
+          <dt>Publisher</dt><dd>{{ g.publisher }}</dd>
+          <dt>Release date</dt><dd>{{ g.releaseDate | date: 'mediumDate' }}</dd>
+          <dt>Age rating</dt><dd>{{ g.ageRating ? g.ageRating + '+' : 'Everyone' }}</dd>
+          <dt>Genres</dt>
+          <dd>
+            @for (genre of g.genres; track genre.id; let last = $last) {
+              <a routerLink="/games" [queryParams]="{ genre: genre.slug }">{{ genre.name }}</a>{{ last ? '' : ', ' }}
+            }
+          </dd>
+        </dl>
+      </aside>
+    </div>
+
+    <!-- ========================= DESCRIPTION ========================= -->
+    <section class="about card">
+      <h2>About this game</h2>
+      <!-- white-space: pre-line (in the scss) keeps the line breaks of the text -->
+      <p class="description">{{ g.description }}</p>
+      <a [href]="g.steamUrl" target="_blank" rel="noopener" class="muted">Source: Steam store page ↗</a>
+    </section>
+
+    <!-- ========================= REVIEWS ========================= -->
+    <!-- (reviewChanged) is an OUTPUT event: we reload the game so the average updates -->
+    <app-game-reviews id="reviews" [game]="g" (reviewChanged)="game.reload()" />
+
+    <!-- ========================= RELATED ========================= -->
+    @if (g.related.length) {
+      <div class="section-head"><h2>You may also like</h2></div>
+      <div class="game-grid">
+        @for (r of g.related; track r.id) {
+          <app-game-card [game]="r" />
+        }
+      </div>
+    }
+  </div>
+} @else if (game.error()) {
+  <div class="container empty-state">
+    <span class="icon">sentiment_dissatisfied</span>
+    <h2>Game not found</h2>
+    <a routerLink="/games" class="btn primary">Browse all games</a>
+  </div>
+} @else {
+  <!-- Loading skeleton -->
+  <div class="container page">
+    <div class="skeleton" style="height: 44px; width: 40%; margin-bottom: 24px"></div>
+    <div class="top">
+      <div class="skeleton" style="aspect-ratio: 16 / 9"></div>
+      <div class="skeleton" style="height: 480px"></div>
+    </div>
+  </div>
+}

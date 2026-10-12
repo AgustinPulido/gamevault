@@ -1,0 +1,74 @@
+<!-- header.html — template of the Header component -->
+<header class="header">
+  <div class="container bar">
+    <!-- Hamburger button, only visible on small screens (see header.scss) -->
+    <button class="btn ghost icon-only burger" type="button" (click)="mobileNavOpen.set(!mobileNavOpen())"
+            aria-label="Toggle navigation">
+      <span class="icon">{{ mobileNavOpen() ? 'close' : 'menu' }}</span>
+    </button>
+
+    <a routerLink="/" class="logo" aria-label="GameVault home">
+      <span class="icon filled">sports_esports</span>
+      <span>Game<strong>Vault</strong></span>
+    </a>
+
+    <!-- [class.open] adds the CSS class "open" when the expression is true -->
+    <nav class="nav" [class.open]="mobileNavOpen()" (click)="mobileNavOpen.set(false)">
+      <!-- routerLinkActive adds the "active" class when the URL matches -->
+      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Store</a>
+      <a routerLink="/games" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Browse</a>
+      <a routerLink="/games" [queryParams]="{ onSale: true, sort: 'discount' }">Deals</a>
+      @if (auth.isAdmin()) {
+        <a routerLink="/admin" routerLinkActive="active">Admin</a>
+      }
+    </nav>
+
+    <!-- #searchInput is a "template reference variable": it lets the template
+         read the <input> element directly (searchInput.value). -->
+    <form class="search" role="search" (submit)="$event.preventDefault(); search(searchInput.value)">
+      <span class="icon">search</span>
+      <input #searchInput type="search" placeholder="Search games, studios..." aria-label="Search games" />
+    </form>
+
+    <div class="actions">
+      <a routerLink="/wishlist" class="btn ghost icon-only counter" aria-label="Wishlist">
+        <span class="icon">favorite</span>
+        @if (wishlist.count() > 0) {
+          <span class="count">{{ wishlist.count() }}</span>
+        }
+      </a>
+      <a routerLink="/cart" class="btn ghost icon-only counter" aria-label="Cart">
+        <span class="icon">shopping_cart</span>
+        @if (cart.count() > 0) {
+          <span class="count">{{ cart.count() }}</span>
+        }
+      </a>
+
+      @if (auth.user(); as user) {
+        <div class="user">
+          <button class="btn ghost user-btn" type="button" (click)="toggleMenu($event)">
+            <img [src]="user.avatarUrl" alt="" class="avatar" />
+            <span class="name">{{ user.name }}</span>
+            <span class="icon">expand_more</span>
+          </button>
+          @if (menuOpen()) {
+            <div class="menu card">
+              <div class="menu-head">
+                <strong>{{ user.name }}</strong>
+                <span class="muted">{{ user.email }}</span>
+              </div>
+              <a routerLink="/orders"><span class="icon">receipt_long</span> My orders</a>
+              <a routerLink="/wishlist"><span class="icon">favorite</span> Wishlist</a>
+              @if (auth.isAdmin()) {
+                <a routerLink="/admin"><span class="icon">dashboard</span> Admin panel</a>
+              }
+              <button type="button" (click)="auth.logout()"><span class="icon">logout</span> Sign out</button>
+            </div>
+          }
+        </div>
+      } @else {
+        <a routerLink="/login" class="btn primary sm">Sign in</a>
+      }
+    </div>
+  </div>
+</header>

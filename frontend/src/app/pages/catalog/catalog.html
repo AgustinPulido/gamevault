@@ -1,0 +1,136 @@
+<div class="container page">
+  <header class="top">
+    <div>
+      <h1>{{ q() ? 'Results for "' + q() + '"' : 'Browse games' }}</h1>
+      @if (lastResults(); as r) {
+        <p class="muted">{{ r.total }} {{ r.total === 1 ? 'game' : 'games' }} found</p>
+      }
+    </div>
+
+    <label class="sort">
+      <span class="muted">Sort by</span>
+      <!-- (change) fires when the user picks another option -->
+      <!-- [selected] on each option (not [value] on the select) because the
+           options are created by @for AFTER the select itself -->
+      <select class="input" (change)="setFilters({ sort: $any($event.target).value })">
+        @for (opt of sortOptions; track opt.value) {
+          <option [value]="opt.value" [selected]="opt.value === (sort() ?? 'relevance')">{{ opt.label }}</option>
+        }
+      </select>
+    </label>
+  </header>
+
+  <div class="layout">
+    <!-- ======================= FILTER SIDEBAR ======================= -->
+    <aside class="filters card">
+      <div class="filter-head">
+        <h3>Filters</h3>
+        @if (hasFilters()) {
+          <button class="btn ghost sm" type="button" (click)="clearAll()">Clear all</button>
+        }
+      </div>
+
+      <section>
+        <h4>Search</h4>
+        <!-- Enter key submits the form -> updates ?q= -->
+        <form (submit)="$event.preventDefault(); setFilters({ q: qInput.value.trim() || null })">
+          <input #qInput class="input" type="search" placeholder="Title or studio" [value]="q() ?? ''" />
+        </form>
+      </section>
+
+      <section>
+        <h4>Platform</h4>
+        <div class="chips">
+          @for (p of platforms.value(); track p.id) {
+            <button type="button" class="chip" [class.active]="platform() === p.code"
+                    (click)="toggle('platform', p.code, platform())">{{ p.name }}</button>
+          }
+        </div>
+      </section>
+
+      <section>
+        <h4>Genre</h4>
+        <div class="chips">
+          @for (g of genres.value(); track g.id) {
+            <button type="button" class="chip" [class.active]="genre() === g.slug"
+                    (click)="toggle('genre', g.slug, genre())">
+              {{ g.name }} <span class="muted">{{ g.gameCount }}</span>
+            </button>
+          }
+        </div>
+      </section>
+
+      <section>
+        <h4>Price</h4>
+        @for (opt of priceOptions; track opt.label) {
+          <label class="radio">
+            <input type="radio" name="price" [checked]="(maxPrice() ?? null) === opt.max"
+                   (change)="setFilters({ maxPrice: opt.max })" />
+            {{ opt.label }}
+          </label>
+        }
+      </section>
+
+      <section>
+        <h4>Other</h4>
+        <label class="radio">
+          <input type="checkbox" [checked]="onSale() === 'true'"
+                 (change)="setFilters({ onSale: $any($event.target).checked ? 'true' : null })" />
+          On sale
+        </label>
+        <label class="radio">
+          <input type="checkbox" [checked]="inStock() === 'true'"
+                 (change)="setFilters({ inStock: $any($event.target).checked ? 'true' : null })" />
+          In stock only
+        </label>
+      </section>
+    </aside>
+
+    <!-- ======================= RESULTS ======================= -->
+    <section class="results" [class.loading]="results.isLoading()">
+      @if (results.error()) {
+        <div class="empty-state">
+          <span class="icon">cloud_off</span>
+          <h2>Couldn't load games</h2>
+          <button class="btn primary" (click)="results.reload()">Try again</button>
+        </div>
+      } @else if (lastResults(); as r) {
+        @if (r.items.length) {
+          <div class="game-grid">
+            @for (game of r.items; track game.id) {
+              <app-game-card [game]="game" />
+            }
+          </div>
+
+          <!-- Paginator -->
+          @if (r.totalPages > 1) {
+            <nav class="pagination" aria-label="Pages">
+              <button class="btn outline sm" [disabled]="currentPage() === 1" (click)="goToPage(currentPage() - 1)">
+                <span class="icon">chevron_left</span>
+              </button>
+              @for (p of pages(); track p) {
+                <button class="btn sm" [class.primary]="p === currentPage()" [class.outline]="p !== currentPage()"
+                        (click)="goToPage(p)">{{ p }}</button>
+              }
+              <button class="btn outline sm" [disabled]="currentPage() === r.totalPages" (click)="goToPage(currentPage() + 1)">
+                <span class="icon">chevron_right</span>
+              </button>
+            </nav>
+          }
+        } @else {
+          <div class="empty-state">
+            <span class="icon">search_off</span>
+            <h2>No games match your filters</h2>
+            <button class="btn primary" (click)="clearAll()">Clear filters</button>
+          </div>
+        }
+      } @else {
+        <div class="game-grid">
+          @for (i of [1, 2, 3, 4, 5, 6, 7, 8]; track i) {
+            <div class="skeleton" style="aspect-ratio: 2 / 3.6"></div>
+          }
+        </div>
+      }
+    </section>
+  </div>
+</div>

@@ -1,0 +1,183 @@
+// header.scss — styles that ONLY apply to the Header component.
+
+.header {
+  position: sticky; // stays at the top while scrolling
+  top: 0;
+  z-index: 100;
+  height: var(--header-h);
+  background: rgba(10, 13, 22, 0.85);
+  backdrop-filter: blur(12px); // frosted-glass effect over content
+  border-bottom: 1px solid var(--border);
+}
+
+.bar {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  text-decoration: none;
+
+  .icon {
+    font-size: 2rem;
+    background: var(--gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  strong { color: var(--primary); }
+}
+
+.nav {
+  display: flex;
+  gap: 4px;
+
+  a {
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    color: var(--text-muted);
+    font-weight: 600;
+    text-decoration: none;
+    &:hover { color: var(--text); background: var(--surface-2); }
+    &.active { color: var(--text); }
+  }
+}
+
+.search {
+  flex: 1;
+  max-width: 420px;
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text-muted);
+  &:focus-within { border-color: var(--primary); }
+
+  input {
+    flex: 1;
+    min-width: 0;
+    padding: 9px 0;
+    border: 0;
+    background: transparent;
+    color: var(--text);
+    font: inherit;
+    &:focus { outline: none; }
+  }
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.counter {
+  position: relative;
+  color: var(--text);
+
+  .count {
+    position: absolute;
+    top: 0;
+    right: 0;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: var(--primary);
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 700;
+    display: grid;
+    place-items: center;
+  }
+}
+
+.user { position: relative; }
+
+.user-btn {
+  padding: 4px 8px 4px 4px;
+  .avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--surface-3); }
+  .name { max-width: 120px; overflow: hidden; text-overflow: ellipsis; }
+}
+
+.menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  width: 240px;
+  padding: 8px;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+
+  .menu-head {
+    display: flex;
+    flex-direction: column;
+    padding: 8px 10px 12px;
+    margin-bottom: 4px;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.85rem;
+  }
+
+  a, button {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 10px;
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: none;
+    color: var(--text);
+    text-align: left;
+    cursor: pointer;
+    text-decoration: none;
+    &:hover { background: var(--surface-2); }
+  }
+}
+
+.burger { display: none; }
+
+// ---------- Responsive: tablets and phones ----------
+@media (max-width: 900px) {
+  .burger { display: inline-flex; }
+  .bar { gap: 12px; }
+  .user-btn .name { display: none; }
+
+  // The nav becomes a drop-down panel under the header.
+  .nav {
+    display: none;
+    position: absolute;
+    top: 100%; // right below the header (the sticky header is the positioned parent)
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    padding: 12px 16px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    &.open { display: flex; }
+  }
+}
+
+@media (max-width: 640px) {
+  // Phones: the search box moves to its own full-width second row.
+  .header { height: auto; }
+  .bar { flex-wrap: wrap; row-gap: 8px; padding-block: 10px; }
+  .actions { margin-left: auto; }
+  .search { order: 10; flex-basis: 100%; max-width: none; margin-left: 0; }
+}
+
+@media (max-width: 420px) {
+  .logo span:last-child { display: none; } // very small phones: keep only the logo icon
+}

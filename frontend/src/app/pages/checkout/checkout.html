@@ -1,0 +1,123 @@
+<div class="container page">
+  <h1>Checkout</h1>
+
+  @if (cart.cart(); as c) {
+    @if (c.items.length === 0) {
+      <div class="empty-state">
+        <span class="icon">remove_shopping_cart</span>
+        <h2>Nothing to pay for</h2>
+        <a routerLink="/games" class="btn primary">Browse games</a>
+      </div>
+    } @else {
+      <!-- [formRoot] handles the submit event: it marks every field as touched
+           (so errors show up) and runs submission.action only if valid. -->
+      <form class="layout" [formRoot]="checkoutForm">
+        <div class="forms">
+          <!-- ===================== BILLING ===================== -->
+          <section class="card">
+            <h3><span class="step">1</span> Billing details</h3>
+            <div class="grid">
+              <div class="field full">
+                <label for="name">Full name</label>
+                <input id="name" class="input" [formField]="checkoutForm.billing.name" autocomplete="name" />
+                <app-field-errors [field]="checkoutForm.billing.name" />
+              </div>
+              <div class="field full">
+                <label for="email">Email (your keys will be sent here)</label>
+                <input id="email" class="input" type="email" [formField]="checkoutForm.billing.email" autocomplete="email" />
+                <app-field-errors [field]="checkoutForm.billing.email" />
+              </div>
+              <div class="field full">
+                <label for="address">Address</label>
+                <input id="address" class="input" [formField]="checkoutForm.billing.address" autocomplete="street-address" />
+                <app-field-errors [field]="checkoutForm.billing.address" />
+              </div>
+              <div class="field">
+                <label for="city">City</label>
+                <input id="city" class="input" [formField]="checkoutForm.billing.city" autocomplete="address-level2" />
+                <app-field-errors [field]="checkoutForm.billing.city" />
+              </div>
+              <div class="field">
+                <label for="country">Country</label>
+                <input id="country" class="input" [formField]="checkoutForm.billing.country" autocomplete="country-name" />
+                <app-field-errors [field]="checkoutForm.billing.country" />
+              </div>
+            </div>
+          </section>
+
+          <!-- ===================== PAYMENT ===================== -->
+          <section class="card">
+            <h3><span class="step">2</span> Payment</h3>
+            <div class="test-cards">
+              <span class="icon">info</span>
+              <span>This is a demo: no real payment is made.</span>
+              <button type="button" class="btn outline sm" (click)="fillTestCard()">Use test card</button>
+              <button type="button" class="btn ghost sm" (click)="fillTestCard(true)">Use declined card</button>
+            </div>
+            <div class="grid">
+              <div class="field full">
+                <label for="cardName">Name on card</label>
+                <input id="cardName" class="input" [formField]="checkoutForm.payment.cardName" autocomplete="cc-name" />
+                <app-field-errors [field]="checkoutForm.payment.cardName" />
+              </div>
+              <div class="field full">
+                <label for="cardNumber">Card number</label>
+                <input id="cardNumber" class="input" inputmode="numeric" placeholder="4242 4242 4242 4242"
+                       [formField]="checkoutForm.payment.cardNumber" autocomplete="cc-number" />
+                <app-field-errors [field]="checkoutForm.payment.cardNumber" />
+              </div>
+              <div class="field">
+                <label for="expiry">Expiry (MM/YY)</label>
+                <input id="expiry" class="input" placeholder="12/30" [formField]="checkoutForm.payment.expiry" autocomplete="cc-exp" />
+                <app-field-errors [field]="checkoutForm.payment.expiry" />
+              </div>
+              <div class="field">
+                <label for="cvc">CVC</label>
+                <input id="cvc" class="input" inputmode="numeric" placeholder="123" [formField]="checkoutForm.payment.cvc" autocomplete="cc-csc" />
+                <app-field-errors [field]="checkoutForm.payment.cvc" />
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <!-- ===================== SUMMARY ===================== -->
+        <aside class="summary card">
+          <h3>Your order</h3>
+          <ul class="items">
+            @for (item of c.items; track item.id) {
+              <li>
+                <img [src]="item.game.coverImage" alt="" />
+                <div>
+                  <strong>{{ item.game.title }}</strong>
+                  <div class="muted small">{{ item.platform.name }} · x{{ item.quantity }}</div>
+                </div>
+                <span>{{ item.lineTotal | cents }}</span>
+              </li>
+            }
+          </ul>
+          <dl class="totals">
+            <dt>Subtotal</dt><dd>{{ c.totals.subtotal | cents }}</dd>
+            @if (c.totals.discount > 0) {
+              <dt class="save">Coupon {{ c.totals.coupon?.code }}</dt><dd class="save">-{{ c.totals.discount | cents }}</dd>
+            }
+            <dt>Tax</dt><dd>{{ c.totals.tax | cents }}</dd>
+            <dt class="grand">Total</dt><dd class="grand">{{ c.totals.total | cents }}</dd>
+          </dl>
+
+          <!-- Error returned by the server (declined card, out of stock...) -->
+          @for (e of checkoutForm().errors(); track e.kind) {
+            <div class="form-error"><span class="icon">error</span> {{ e.message }}</div>
+          }
+
+          <button class="btn primary lg block" type="submit" [disabled]="checkoutForm().submitting()">
+            <span class="icon">lock</span>
+            {{ checkoutForm().submitting() ? 'Processing...' : 'Pay ' + (c.totals.total | cents) }}
+          </button>
+          <a routerLink="/cart" class="muted center">← Back to cart</a>
+        </aside>
+      </form>
+    }
+  } @else {
+    <div class="skeleton" style="height: 400px"></div>
+  }
+</div>

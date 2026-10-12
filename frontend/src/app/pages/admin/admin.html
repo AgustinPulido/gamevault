@@ -1,0 +1,139 @@
+<div class="container page">
+  <h1>Admin panel</h1>
+
+  <!-- Tabs: clicking sets the `tab` signal; @switch shows the matching panel -->
+  <div class="tabs" role="tablist">
+    <button role="tab" class="chip" [class.active]="tab() === 'dashboard'" (click)="tab.set('dashboard')">
+      <span class="icon">monitoring</span> Dashboard
+    </button>
+    <button role="tab" class="chip" [class.active]="tab() === 'inventory'" (click)="tab.set('inventory')">
+      <span class="icon">inventory_2</span> Inventory
+    </button>
+    <button role="tab" class="chip" [class.active]="tab() === 'orders'" (click)="tab.set('orders')">
+      <span class="icon">receipt_long</span> Orders
+    </button>
+  </div>
+
+  @switch (tab()) {
+    <!-- ============================ DASHBOARD ============================ -->
+    @case ('dashboard') {
+      @if (stats.value(); as s) {
+        <div class="kpis">
+          <div class="kpi card"><span class="icon">payments</span><div><small>Revenue</small><strong>{{ s.revenue | cents }}</strong></div></div>
+          <div class="kpi card"><span class="icon">shopping_bag</span><div><small>Orders</small><strong>{{ s.orders }}</strong></div></div>
+          <div class="kpi card"><span class="icon">group</span><div><small>Customers</small><strong>{{ s.customers }}</strong></div></div>
+          <div class="kpi card"><span class="icon">sports_esports</span><div><small>Games</small><strong>{{ s.games }}</strong></div></div>
+          <div class="kpi card"><span class="icon">reviews</span><div><small>Reviews</small><strong>{{ s.reviews }}</strong></div></div>
+        </div>
+
+        <div class="two-cols">
+          <section class="card">
+            <h3>Best sellers</h3>
+            <table class="table">
+              <thead><tr><th>Game</th><th>Units</th><th>Revenue</th></tr></thead>
+              <tbody>
+                @for (t of s.topSellers; track t.title) {
+                  <tr><td>{{ t.title }}</td><td>{{ t.unitsSold }}</td><td>{{ t.revenue | cents }}</td></tr>
+                } @empty {
+                  <tr><td colspan="3" class="muted">No sales yet</td></tr>
+                }
+              </tbody>
+            </table>
+          </section>
+
+          <section class="card">
+            <h3>Low stock <span class="badge warning">{{ s.lowStock.length }}</span></h3>
+            <table class="table">
+              <thead><tr><th>Game</th><th>Stock</th></tr></thead>
+              <tbody>
+                @for (g of s.lowStock; track g.id) {
+                  <tr>
+                    <td>{{ g.title }}</td>
+                    <td><span class="badge" [class.danger]="g.stock === 0" [class.warning]="g.stock > 0">{{ g.stock }}</span></td>
+                  </tr>
+                } @empty {
+                  <tr><td colspan="2" class="muted">All games are well stocked</td></tr>
+                }
+              </tbody>
+            </table>
+          </section>
+        </div>
+      } @else {
+        <div class="skeleton" style="height: 240px"></div>
+      }
+    }
+
+    <!-- ============================ INVENTORY ============================ -->
+    @case ('inventory') {
+      <section class="card">
+        <div class="toolbar">
+          <input class="input" type="search" placeholder="Filter by title..." [value]="filter()"
+                 (input)="filter.set($any($event.target).value)" />
+          <span class="muted">{{ filteredGames().length }} games</span>
+        </div>
+        <div class="table-wrap">
+          <table class="table inventory">
+            <thead>
+              <tr><th>Game</th><th>Price ($)</th><th>Discount %</th><th>Stock</th><th>Featured</th><th>Final</th><th></th></tr>
+            </thead>
+            <tbody>
+              @for (g of filteredGames(); track g.id) {
+                <tr>
+                  <td>
+                    <a class="game" [routerLink]="['/games', g.slug]">
+                      <img [src]="g.coverImage" alt="" /> {{ g.title }}
+                    </a>
+                  </td>
+                  <!-- #price etc. are template variables; their values are read on Save -->
+                  <td><input #price class="input num" type="number" min="0" step="0.01" [value]="(g.price / 100).toFixed(2)" /></td>
+                  <td><input #discount class="input num" type="number" min="0" max="95" [value]="g.discountPercent" /></td>
+                  <td><input #stock class="input num" type="number" min="0" [value]="g.stock" /></td>
+                  <td><input #featured type="checkbox" [checked]="g.featured" /></td>
+                  <td>{{ g.finalPrice | cents }}</td>
+                  <td>
+                    <button class="btn outline sm" [disabled]="savingId() === g.id"
+                            (click)="saveGame(g, price.value, discount.value, stock.value, featured.checked)">
+                      {{ savingId() === g.id ? 'Saving…' : 'Save' }}
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </section>
+    }
+
+    <!-- ============================ ORDERS ============================ -->
+    @case ('orders') {
+      <section class="card table-wrap">
+        <table class="table">
+          <thead>
+            <tr><th>#</th><th>Date</th><th>Customer</th><th>Items</th><th>Total</th><th>Status</th><th>Change status</th></tr>
+          </thead>
+          <tbody>
+            @for (o of orders.value(); track o.id) {
+              <tr>
+                <td>{{ o.id }}</td>
+                <td>{{ o.createdAt | date: 'short' }}</td>
+                <td>{{ o.customerName }}<div class="muted small">{{ o.customerEmail }}</div></td>
+                <td>{{ o.itemCount }}</td>
+                <td>{{ o.total | cents }}</td>
+                <td><app-order-status-badge [status]="o.status" /></td>
+                <td>
+                  <select class="input" (change)="changeStatus(o, $any($event.target).value)">
+                    @for (s of statuses; track s) {
+                      <option [value]="s" [selected]="s === o.status">{{ s }}</option>
+                    }
+                  </select>
+                </td>
+              </tr>
+            } @empty {
+              <tr><td colspan="7" class="muted">No orders yet</td></tr>
+            }
+          </tbody>
+        </table>
+      </section>
+    }
+  }
+</div>

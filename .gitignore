@@ -1,0 +1,14 @@
+# Dependencies
+node_modules/
+
+# Build output and caches
+dist/
+.angular/
+
+# Local SQLite database (recreated automatically by the backend)
+backend/data/
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+*.log

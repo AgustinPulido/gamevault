@@ -1,0 +1,113 @@
+<div class="section-head">
+  <h2>Player reviews</h2>
+  <select class="input sort" [value]="sort()" (change)="sort.set($any($event.target).value)" aria-label="Sort reviews">
+    <option value="newest">Newest first</option>
+    <option value="rating">Highest rated</option>
+  </select>
+</div>
+
+<div class="layout">
+  <!-- ===================== SUMMARY + FORM ===================== -->
+  <aside>
+    <div class="card summary">
+      <div class="big">{{ game().rating.toFixed(1) }}</div>
+      <app-star-rating [value]="game().rating" />
+      <div class="muted">{{ game().reviewCount }} reviews</div>
+
+      <div class="bars">
+        @for (bar of bars(); track bar.stars) {
+          <div class="bar-row">
+            <span>{{ bar.stars }}★</span>
+            <div class="bar"><div class="fill" [style.width.%]="bar.percent"></div></div>
+            <span class="muted">{{ bar.count }}</span>
+          </div>
+        }
+      </div>
+    </div>
+
+    <div class="card write">
+      @if (!auth.isLoggedIn()) {
+        <p class="muted">Want to share your opinion?</p>
+        <a routerLink="/login" class="btn primary block">Sign in to write a review</a>
+      } @else if (myReview()) {
+        <p class="muted"><span class="icon">check_circle</span> You already reviewed this game.</p>
+      } @else {
+        <h3>Write a review</h3>
+        <!-- [formRoot] wires the submit event to the form's submission.action -->
+        <form [formRoot]="reviewForm">
+          <div class="field">
+            <label>Your rating</label>
+            <!-- Our custom StarRating component works as a form control! -->
+            <app-star-rating [formField]="reviewForm.rating" [editable]="true" />
+            <!-- Submitting marks every field as touched, so errors appear then too -->
+            @if (reviewForm.rating().touched()) {
+              @for (e of reviewForm.rating().errors(); track e.kind) {
+                <span class="error">{{ e.message }}</span>
+              }
+            }
+          </div>
+
+          <div class="field">
+            <label for="review-title">Title</label>
+            <input id="review-title" class="input" [formField]="reviewForm.title" placeholder="Sum it up in a few words" />
+            <!-- Show errors only after the user left the field (touched) -->
+            @if (reviewForm.title().touched()) {
+              @for (e of reviewForm.title().errors(); track e.kind) {
+                <span class="error">{{ e.message }}</span>
+              }
+            }
+          </div>
+
+          <div class="field">
+            <label for="review-body">Review</label>
+            <textarea id="review-body" class="input" rows="4" [formField]="reviewForm.body"
+                      placeholder="What did you like or dislike?"></textarea>
+            @if (reviewForm.body().touched()) {
+              @for (e of reviewForm.body().errors(); track e.kind) {
+                <span class="error">{{ e.message }}</span>
+              }
+            }
+          </div>
+
+          <!-- Errors returned by the server (attached to the whole form) -->
+          @for (e of reviewForm().errors(); track e.kind) {
+            <div class="form-error"><span class="icon">error</span> {{ e.message }}</div>
+          }
+
+          <button class="btn primary block" type="submit" [disabled]="reviewForm().submitting()">
+            {{ reviewForm().submitting() ? 'Publishing...' : 'Publish review' }}
+          </button>
+        </form>
+      }
+    </div>
+  </aside>
+
+  <!-- ===================== LIST ===================== -->
+  <div class="list">
+    @for (r of reviews.value(); track r.id) {
+      <article class="review card" [class.mine]="r.userId === auth.user()?.id">
+        <header>
+          <img class="avatar" [src]="r.userAvatar" alt="" />
+          <div>
+            <strong>{{ r.userName }}</strong>
+            <div class="muted small">{{ r.createdAt | date: 'mediumDate' }}</div>
+          </div>
+          @if (r.verifiedPurchase) {
+            <span class="badge success"><span class="icon">verified</span> Verified purchase</span>
+          }
+        </header>
+        <app-star-rating [value]="r.rating" />
+        <h4>{{ r.title }}</h4>
+        <p>{{ r.body }}</p>
+        @if (r.userId === auth.user()?.id || auth.isAdmin()) {
+          <button class="btn danger sm" type="button" (click)="deleteReview(r)">
+            <span class="icon">delete</span> Delete
+          </button>
+        }
+      </article>
+    } @empty {
+      <!-- @empty renders when the list has no items -->
+      <div class="card muted">No reviews yet. Be the first!</div>
+    }
+  </div>
+</div>

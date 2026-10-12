@@ -1,0 +1,46 @@
+<div class="auth-page">
+  <div class="panel card">
+    <div class="brand"><span class="icon filled">sports_esports</span></div>
+    <h1>Welcome back</h1>
+    <p class="muted">Sign in to buy games, write reviews and see your keys.</p>
+
+    <form [formRoot]="loginForm">
+      <div class="field">
+        <label for="email">Email</label>
+        <input id="email" class="input" type="email" autocomplete="email" [formField]="loginForm.email" />
+        <app-field-errors [field]="loginForm.email" />
+      </div>
+
+      <div class="field">
+        <label for="password">Password</label>
+        <div class="password">
+          <input id="password" class="input" [type]="showPassword() ? 'text' : 'password'"
+                 autocomplete="current-password" [formField]="loginForm.password" />
+          <button type="button" class="btn ghost icon-only" (click)="showPassword.set(!showPassword())"
+                  [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'">
+            <span class="icon">{{ showPassword() ? 'visibility_off' : 'visibility' }}</span>
+          </button>
+        </div>
+        <app-field-errors [field]="loginForm.password" />
+      </div>
+
+      @for (e of loginForm().errors(); track e.kind) {
+        <div class="form-error"><span class="icon">error</span> {{ e.message }}</div>
+      }
+
+      <button class="btn primary lg block" type="submit" [disabled]="loginForm().submitting()">
+        {{ loginForm().submitting() ? 'Signing in...' : 'Sign in' }}
+      </button>
+    </form>
+
+    <div class="demo">
+      <span class="muted">Quick demo accounts:</span>
+      <button type="button" class="chip" (click)="useDemo('customer')">Customer</button>
+      <button type="button" class="chip" (click)="useDemo('admin')">Admin</button>
+    </div>
+
+    <p class="switch muted">
+      New here? <a routerLink="/register" [queryParams]="{ returnUrl: returnUrl() }">Create an account</a>
+    </p>
+  </div>
+</div>

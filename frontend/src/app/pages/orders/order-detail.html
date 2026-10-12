@@ -1,0 +1,85 @@
+<div class="container page">
+  @if (order.value(); as o) {
+    @if (placed()) {
+      <div class="thanks card">
+        <span class="icon filled">celebration</span>
+        <div>
+          <h2>Thank you for your purchase!</h2>
+          <p class="muted">Your activation keys are ready below. A copy was "sent" to {{ o.billing.email }} (not really, it's a demo 😉).</p>
+        </div>
+      </div>
+    }
+
+    <a routerLink="/orders" class="muted">← All orders</a>
+    <div class="head">
+      <h1>Order #{{ o.id }}</h1>
+      <app-order-status-badge [status]="o.status" />
+    </div>
+    <!-- The API sends ISO dates in UTC; DatePipe shows them in the user's local time -->
+    <p class="muted">Placed on {{ o.createdAt | date: 'medium' }}</p>
+
+    <div class="layout">
+      <section class="items">
+        @for (item of o.items; track item.id) {
+          <article class="item card">
+            <img [src]="item.coverImage" [alt]="item.title" />
+            <div class="body">
+              <div class="row">
+                <div>
+                  @if (item.slug) {
+                    <a class="title" [routerLink]="['/games', item.slug]">{{ item.title }}</a>
+                  } @else {
+                    <span class="title">{{ item.title }}</span>
+                  }
+                  <div class="muted small">{{ item.platformName }} · {{ item.quantity }} × {{ item.unitPrice | cents }}</div>
+                </div>
+                <strong>{{ item.unitPrice * item.quantity | cents }}</strong>
+              </div>
+
+              <div class="keys">
+                <span class="small muted">Activation {{ item.activationKeys.length > 1 ? 'keys' : 'key' }}</span>
+                @for (key of item.activationKeys; track key) {
+                  <button type="button" class="key" (click)="copy(key)" title="Copy">
+                    <code>{{ key }}</code>
+                    <span class="icon">content_copy</span>
+                  </button>
+                }
+              </div>
+            </div>
+          </article>
+        }
+      </section>
+
+      <aside class="card side">
+        <h3>Summary</h3>
+        <dl class="totals">
+          <dt>Subtotal</dt><dd>{{ o.subtotal | cents }}</dd>
+          @if (o.discount > 0) {
+            <dt class="save">Coupon {{ o.couponCode }}</dt><dd class="save">-{{ o.discount | cents }}</dd>
+          }
+          <dt>Tax</dt><dd>{{ o.tax | cents }}</dd>
+          <dt class="grand">Total</dt><dd class="grand">{{ o.total | cents }}</dd>
+        </dl>
+
+        <h3>Billing</h3>
+        <address class="muted">
+          {{ o.billing.name }}<br />
+          {{ o.billing.address }}<br />
+          {{ o.billing.city }}, {{ o.billing.country }}<br />
+          {{ o.billing.email }}
+        </address>
+
+        <h3>Payment</h3>
+        <p class="muted"><span class="icon">credit_card</span> Card ending in {{ o.payment.last4 }}</p>
+      </aside>
+    </div>
+  } @else if (order.error()) {
+    <div class="empty-state">
+      <span class="icon">receipt_long</span>
+      <h2>Order not found</h2>
+      <a routerLink="/orders" class="btn primary">Back to my orders</a>
+    </div>
+  } @else {
+    <div class="skeleton" style="height: 360px"></div>
+  }
+</div>
